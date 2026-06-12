@@ -30,7 +30,7 @@ _EUROPE_TERMS: tuple[str, ...] = (
 class JobFilter:
     """Filterkriterien für die Jobliste im Dashboard."""
 
-    status: JobStatus | None = None
+    statuses: tuple[JobStatus, ...] | None = None
     remote: bool | None = None
     region: str | None = None  # "germany" | "europe" | None
     text: str | None = None
@@ -130,8 +130,8 @@ class JobRepository:
     def list_jobs(self, criteria: JobFilter) -> list[Job]:
         with session_scope(self._factory) as session:
             query = select(Job)
-            if criteria.status is not None:
-                query = query.where(Job.status == criteria.status)
+            if criteria.statuses:
+                query = query.where(Job.status.in_(criteria.statuses))
             if criteria.remote is not None:
                 query = query.where(Job.remote.is_(criteria.remote))
             if criteria.applied is not None:

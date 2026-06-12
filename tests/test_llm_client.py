@@ -115,3 +115,30 @@ def test_analyse_job_parses_valid_json(
 
 def test_limit_words_keeps_short_text() -> None:
     assert LLMClient._limit_words("Kurzer Text.", 250) == "Kurzer Text."
+
+
+def test_cover_letter_prompt_includes_style_samples(
+    config: AppConfig,
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+    fake_response_class: type,
+) -> None:
+    import dataclasses
+
+    (tmp_path / "beispiel.txt").write_text(
+        "Mein Stil ist prägnant und direkt.", encoding="utf-8"
+    )
+    cfg = dataclasses.replace(config, cover_letter_samples_path=str(tmp_path))
+    captured: dict[str, str] = {}
+
+    def capturing_post(url: str, json: dict, timeout: int) -> object:
+        captured["prompt"] = json["prompt"]
+        return fake_response_class(
+            status_code=200, json_data={"response": "Sehr geehrtes Team, Anschreiben."}
+        )
+
+    monkeypatch.setattr(llm_module.requests, "post", capturing_post)
+    client = LLMClient(cfg)
+    client.generate_cover_letter("Java Developer", "Acme GmbH", "Wir suchen Java und Spring.")
+    assert "Mein Stil ist prägnant und direkt." in captured["prompt"]
+    assert "wörtlich" in captured["prompt"]

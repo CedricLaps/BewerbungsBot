@@ -4,47 +4,62 @@
   "ollama_url": "http://localhost:11434/api/generate",
   "llm_timeout_seconds": 240,
 
-  "firstname": "YourName",
-  "lastname": "YourLastname",
+  "firstname": "Cedric",
+  "lastname": "Lapschies",
   "email": "EMAIL_HERE",
   "phone": "PHONE_HERE",
   "city": "Geldern",
   "country": "Germany",
-  "salary_expectation": "YourSalaryExpectationInEURandNumberOnly",
+  "salary_expectation": "50000",
   "cv_path": "./documents/CV.pdf",
   "certificates_path": "./documents/certificates/",
-  "github": "https://github.com/YourUsername",
-  "linkedin": "https://linkedin.com/in/yourname",
+  "cover_letter_samples_path": "./documents/anschreiben/",
+  "github": "https://github.com/CedricLaps",
+  "linkedin": "LINKEDIN_URL",
 
   "profile_skills": [
-    "YourSkill1", "YourSkill2", "YourSkill3"
+    "Java", "Spring Boot", "Angular", "TypeScript", "JavaScript",
+    "MongoDB", "Git", "GitLab", "JUnit", "REST APIs", "Unity", "C#"
   ],
   "profile_experience": [
-    "YourExperience", "AnotherExperience", "AndAnotherOne"
+    "Fachinformatiker für Anwendungsentwicklung",
+    "Ausbildung bei bofrost*",
+    "Erfahrung mit POS-Systemen",
+    "Eigene veröffentlichte Software- und Spieleprojekte",
+    "GitHub-Projekte"
   ],
 
   "search_keywords": [
-    "YourKeyword1", "YourKeyword2", "YourKeyword3"
+    "Java Developer", "Junior Java Developer", "Backend Developer",
+    "Backend Engineer", "Software Engineer", "Software Developer",
+    "Full Stack Developer", "Spring Boot Developer", "Application Developer",
+    "C# Developer", ".NET Developer", "Softwareentwickler", "Anwendungsentwickler"
   ],
   "locations": ["Deutschland", "Remote", "Europa Remote"],
 
   "positive_keywords": [
-    "positiveKeyword1", "positiveKeyword2", "positiveKeyword3"
+    "Java", "Spring Boot", "Angular", "REST", "Backend", "MongoDB",
+    "Git", "GitLab", "TypeScript", "JUnit", "Fullstack", "POS", "Retail",
+    "C#", ".NET", "Unity", "Junior"
   ],
   "negative_keywords": [
-    "negativeKeyword1", "negativeKeyword2", "negativeKeyword3"
+    "SAP", "COBOL", "Embedded", "Principal", "Architect", "10+ Jahre", "Senior Lead"
   ],
   "title_blocklist": [
-    "titleBlocklistKeyword1", "titleBlocklistKeyword2", "titleBlocklistKeyword3"
+    "senior", "principal", "staff", "lead", "head of", "director",
+    "vice president", "vp", "chief", "cto", "architect", "architekt",
+    "teamleiter", "leiter", "manager",
+    "sales", "customer success", "strategist", "consultant", "recruiter"
   ],
   "min_match_score": 60,
+  "llm_score_weight": 0.6,
   "germany_or_remote_only": true,
 
   "auto_submit": true,
   "headless": true,
   "max_applications_per_run": 10,
   "scrape_interval_hours": 6,
-  "apply_interval_hours": 12,
+  "apply_interval_hours": 3,
   "scheduler_enabled": true,
   "request_delay_seconds": 2.0,
   "max_pages_per_search": 2,

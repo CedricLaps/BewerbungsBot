@@ -55,7 +55,9 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
 
     @application.get("/api/jobs", response_model=list[JobOut])
     def list_jobs(
-        status: JobStatus | None = None,
+        status: str | None = Query(
+            default=None, description="Ein Status oder mehrere kommagetrennt, z.B. matched,manual"
+        ),
         remote: bool | None = None,
         region: str | None = Query(default=None, pattern="^(germany|europe)$"),
         q: str | None = None,
@@ -64,9 +66,17 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
         limit: int = Query(default=200, ge=1, le=1000),
         offset: int = Query(default=0, ge=0),
     ) -> list[JobOut]:
+        statuses: tuple[JobStatus, ...] | None = None
+        if status:
+            try:
+                statuses = tuple(
+                    JobStatus(part.strip()) for part in status.split(",") if part.strip()
+                )
+            except ValueError:
+                raise HTTPException(status_code=422, detail=f"Unbekannter Status: {status}")
         jobs = pipeline.repository.list_jobs(
             JobFilter(
-                status=status,
+                statuses=statuses,
                 remote=remote,
                 region=region,
                 text=q,

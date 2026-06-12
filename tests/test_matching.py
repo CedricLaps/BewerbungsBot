@@ -54,9 +54,16 @@ def test_combined_score_without_llm_uses_keyword_score() -> None:
     assert combined_score(70, None) == 70
 
 
-def test_combined_score_averages_keyword_and_llm() -> None:
-    assert combined_score(60, 80) == 70
-    assert combined_score(0, 100) == 50
+def test_combined_score_weights_llm_higher_by_default() -> None:
+    # Standard: 40 % Keywords, 60 % LLM
+    assert combined_score(60, 80) == 72
+    assert combined_score(0, 100) == 60
+
+
+def test_combined_score_respects_custom_weight() -> None:
+    assert combined_score(60, 80, llm_weight=0.5) == 70
+    assert combined_score(60, 80, llm_weight=1.0) == 80
+    assert combined_score(60, 80, llm_weight=0.0) == 60
 
 
 def test_title_matches_accepts_relevant_titles() -> None:

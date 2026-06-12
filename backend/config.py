@@ -42,6 +42,8 @@ DEFAULT_TITLE_BLOCKLIST: tuple[str, ...] = (
     "senior", "principal", "staff", "lead", "head of", "director",
     "vice president", "vp", "chief", "cto", "architect", "architekt",
     "teamleiter", "leiter", "manager",
+    # Keine Entwickler-Rollen, auch wenn "Engineer" im Titel steht
+    "sales", "customer success", "strategist", "consultant", "recruiter",
 )
 
 DEFAULT_SKILLS: tuple[str, ...] = (
@@ -91,6 +93,8 @@ class AppConfig:
     salary_expectation: str = "50000"
     cv_path: str = "./documents/CV.pdf"
     certificates_path: str = "./documents/certificates/"
+    # Beispiel-Anschreiben (.txt/.md/.pdf) als Stilvorlagen für das LLM
+    cover_letter_samples_path: str = "./documents/anschreiben/"
     github: str = "https://github.com/CedricLaps"
     linkedin: str = ""
     profile_skills: tuple[str, ...] = DEFAULT_SKILLS
@@ -103,6 +107,8 @@ class AppConfig:
     negative_keywords: tuple[str, ...] = DEFAULT_NEGATIVE_KEYWORDS
     title_blocklist: tuple[str, ...] = DEFAULT_TITLE_BLOCKLIST
     min_match_score: int = 60
+    # Anteil des LLM-Scores am Gesamtscore (0.0–1.0); Rest ist Keyword-Score
+    llm_score_weight: float = 0.6
     # Nur Stellen in Deutschland; außerhalb nur, wenn voll remote
     germany_or_remote_only: bool = True
 

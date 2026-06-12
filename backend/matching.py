@@ -43,11 +43,17 @@ def keyword_score(
     return max(0, min(100, score))
 
 
-def combined_score(kw_score: int, llm_score: int | None) -> int:
-    """Kombiniert Keyword- und LLM-Score (je 50 %); ohne LLM zählt nur der Keyword-Score."""
+def combined_score(kw_score: int, llm_score: int | None, llm_weight: float = 0.6) -> int:
+    """Kombiniert Keyword- und LLM-Score; ohne LLM zählt nur der Keyword-Score.
+
+    Das LLM wird standardmäßig stärker gewichtet (60 %), weil es die Anzeige
+    inhaltlich gegen das Profil prüft, während der Keyword-Score nur wörtliche
+    Treffer zählt.
+    """
     if llm_score is None:
         return max(0, min(100, kw_score))
-    return max(0, min(100, round(0.5 * kw_score + 0.5 * llm_score)))
+    weight = max(0.0, min(1.0, llm_weight))
+    return max(0, min(100, round((1 - weight) * kw_score + weight * llm_score)))
 
 
 def title_matches(title: str, search_keywords: tuple[str, ...] | list[str]) -> bool:

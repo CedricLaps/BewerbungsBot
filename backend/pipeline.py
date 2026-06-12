@@ -108,7 +108,7 @@ class Pipeline:
                     llm_score = self.llm.calculate_match_score(job.title, job.description)
                 except LLMError as exc:
                     logger.warning("LLM-Score für Job %s fehlgeschlagen: %s", job.id, exc)
-            total = combined_score(kw_score, llm_score)
+            total = combined_score(kw_score, llm_score, self.config.llm_score_weight)
             language = detect_language(text)
             self.repository.set_score(
                 job.id,

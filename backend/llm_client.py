@@ -11,6 +11,7 @@ import requests
 from backend.config import AppConfig
 from backend.language import detect_language
 from backend.retry import retry
+from backend.style_samples import build_style_block, load_style_samples
 
 logger = logging.getLogger(__name__)
 
@@ -179,9 +180,16 @@ class LLMClient:
         return max(0, min(100, score))
 
     def generate_cover_letter(self, title: str, company: str, description: str) -> str:
-        """Erzeugt ein individuelles Anschreiben (max. 250 Wörter, Sprache automatisch)."""
+        """Erzeugt ein individuelles Anschreiben (max. 250 Wörter, Sprache automatisch).
+
+        Liegen unter `cover_letter_samples_path` Beispiel-Anschreiben, dienen sie
+        dem LLM als Stilvorlage für Tonfall und Formulierungen.
+        """
         language = detect_language(f"{title}\n{description}")
         profile = self._profile_summary()
+        style_block = build_style_block(
+            load_style_samples(self.config.cover_letter_samples_path), language
+        )
         if language == "de":
             prompt = (
                 f"Schreibe ein individuelles Bewerbungsanschreiben auf Deutsch für die Stelle "
@@ -196,6 +204,7 @@ class LLMClient:
                 "- Professioneller, natürlicher Ton\n"
                 "- Beginnt mit einer Anrede, endet mit 'Mit freundlichen Grüßen' und dem Namen\n"
                 "- Gib NUR den Anschreiben-Text aus, ohne Betreff, Kommentare oder Platzhalter"
+                f"{style_block}"
             )
         else:
             prompt = (
@@ -211,6 +220,7 @@ class LLMClient:
                 "- Professional, natural tone\n"
                 "- Start with a salutation, end with 'Kind regards' and the name\n"
                 "- Output ONLY the letter text, no subject line, comments or placeholders"
+                f"{style_block}"
             )
         letter = self._generate(prompt, temperature=0.6)
         if not letter:

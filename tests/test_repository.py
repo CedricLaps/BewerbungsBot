@@ -114,6 +114,27 @@ def test_update_status_to_interview_marks_response(repository: JobRepository) ->
     assert job.response_at is not None
 
 
+def test_list_jobs_filters_multiple_statuses(repository: JobRepository) -> None:
+    matched_id = add_sample_job(repository, url="https://example.com/jobs/m1")
+    repository.set_score(
+        matched_id, keyword_score=80, llm_score=None, match_score=80, language="de", min_match_score=60
+    )
+    manual_id = add_sample_job(
+        repository, url="https://example.com/jobs/m2", title="Backend Engineer"
+    )
+    repository.update_status(manual_id, JobStatus.MANUAL)
+    skipped_id = add_sample_job(
+        repository, url="https://example.com/jobs/m3", title="Software Engineer"
+    )
+    repository.set_score(
+        skipped_id, keyword_score=20, llm_score=None, match_score=20, language="de", min_match_score=60
+    )
+    combined = repository.list_jobs(JobFilter(statuses=(JobStatus.MATCHED, JobStatus.MANUAL)))
+    assert {job.id for job in combined} == {matched_id, manual_id}
+    only_manual = repository.list_jobs(JobFilter(statuses=(JobStatus.MANUAL,)))
+    assert [job.id for job in only_manual] == [manual_id]
+
+
 def test_list_jobs_filters_remote(repository: JobRepository) -> None:
     add_sample_job(repository, url="https://example.com/jobs/r1", remote=True, title="Remote Java Dev")
     add_sample_job(repository, url="https://example.com/jobs/o1", remote=False, title="Office Java Dev")
