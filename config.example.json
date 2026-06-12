@@ -1,0 +1,70 @@
+﻿{
+  "llm_provider": "ollama",
+  "ollama_model": "deepseek-r1",
+  "ollama_url": "http://localhost:11434/api/generate",
+  "llm_timeout_seconds": 240,
+
+  "firstname": "YourName",
+  "lastname": "YourLastname",
+  "email": "EMAIL_HERE",
+  "phone": "PHONE_HERE",
+  "city": "Geldern",
+  "country": "Germany",
+  "salary_expectation": "YourSalaryExpectationInEURandNumberOnly",
+  "cv_path": "./documents/CV.pdf",
+  "certificates_path": "./documents/certificates/",
+  "github": "https://github.com/YourUsername",
+  "linkedin": "https://linkedin.com/in/yourname",
+
+  "profile_skills": [
+    "YourSkill1", "YourSkill2", "YourSkill3"
+  ],
+  "profile_experience": [
+    "YourExperience", "AnotherExperience", "AndAnotherOne"
+  ],
+
+  "search_keywords": [
+    "YourKeyword1", "YourKeyword2", "YourKeyword3"
+  ],
+  "locations": ["Deutschland", "Remote", "Europa Remote"],
+
+  "positive_keywords": [
+    "positiveKeyword1", "positiveKeyword2", "positiveKeyword3"
+  ],
+  "negative_keywords": [
+    "negativeKeyword1", "negativeKeyword2", "negativeKeyword3"
+  ],
+  "title_blocklist": [
+    "titleBlocklistKeyword1", "titleBlocklistKeyword2", "titleBlocklistKeyword3"
+  ],
+  "min_match_score": 60,
+  "germany_or_remote_only": true,
+
+  "auto_submit": true,
+  "headless": true,
+  "max_applications_per_run": 10,
+  "scrape_interval_hours": 6,
+  "apply_interval_hours": 12,
+  "scheduler_enabled": true,
+  "request_delay_seconds": 2.0,
+  "max_pages_per_search": 2,
+  "max_descriptions_per_run": 20,
+
+  "enabled_scrapers": [
+    "linkedin", "stepstone", "indeed", "greenhouse",
+    "lever", "personio", "workday", "company_pages"
+  ],
+  "greenhouse_boards": ["gitlab", "n26", "celonis"],
+  "lever_companies": ["backmarket"],
+  "personio_companies": [],
+  "workday_sites": [],
+  "company_pages": [],
+
+  "database_path": "./data/jobs.db",
+  "logs_dir": "./logs",
+  "workday_storage_state": "./data/workday_state.json",
+
+  "host": "0.0.0.0",
+  "port": 8000
+}
+

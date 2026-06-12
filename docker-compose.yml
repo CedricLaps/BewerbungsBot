@@ -1,0 +1,51 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: bewerbungsbot-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: bewerbungsbot-ollama-init
+    depends_on:
+      - ollama
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    entrypoint: ["/bin/sh", "-c", "sleep 8 && ollama pull deepseek-r1"]
+    restart: "no"
+
+  bot:
+    build: .
+    container_name: bewerbungsbot
+    depends_on:
+      - ollama
+    ports:
+      - "8000:8000"
+    environment:
+      - OLLAMA_URL=http://ollama:11434/api/generate
+      - DATABASE_PATH=/app/data/jobs.db
+      - LOGS_DIR=/app/logs
+      - HEADLESS=true
+    volumes:
+      - ./config.json:/app/config.json:ro
+      # Eigenes Docker-Volume statt Bind-Mount: SQLite (WAL) ist auf
+      # Windows-Bind-Mounts nicht prozessübergreifend sicher
+      - bot_data:/app/data
+      - ./logs:/app/logs
+      - ./documents:/app/documents:ro
+    restart: unless-stopped
+
+volumes:
+  ollama_models:
+  bot_data:

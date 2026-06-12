@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BewerbungsBot – Dashboard</title>
+<style>
+  :root {
+    --bg: #0f1419; --panel: #1a2129; --border: #2c3742; --text: #e6edf3;
+    --muted: #8b98a5; --accent: #4f9cf9; --green: #3fb950; --red: #f85149;
+    --yellow: #d29922;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; }
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 24px; background: var(--panel); border-bottom: 1px solid var(--border);
+  }
+  header h1 { font-size: 20px; }
+  header h1 span { color: var(--accent); }
+  .actions button {
+    background: var(--accent); color: #fff; border: none; border-radius: 6px;
+    padding: 9px 16px; margin-left: 8px; font-size: 14px; cursor: pointer;
+  }
+  .actions button.secondary { background: var(--panel); border: 1px solid var(--border); }
+  .actions button:hover { filter: brightness(1.15); }
+  main { padding: 24px; max-width: 1400px; margin: 0 auto; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .stat {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 14px;
+  }
+  .stat .value { font-size: 26px; font-weight: 700; }
+  .stat .label { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 16px; }
+  .chip {
+    background: var(--panel); border: 1px solid var(--border); color: var(--text);
+    border-radius: 16px; padding: 6px 14px; font-size: 13px; cursor: pointer;
+  }
+  .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .filters input, .filters select {
+    background: var(--panel); border: 1px solid var(--border); color: var(--text);
+    border-radius: 6px; padding: 7px 10px; font-size: 13px;
+  }
+  table { width: 100%; border-collapse: collapse; background: var(--panel); border-radius: 8px; overflow: hidden; }
+  th, td { padding: 10px 12px; text-align: left; font-size: 13px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: 11px; }
+  tr:hover td { background: rgba(79, 156, 249, 0.06); }
+  td a { color: var(--accent); text-decoration: none; }
+  .score { font-weight: 700; }
+  .score.high { color: var(--green); }
+  .score.mid { color: var(--yellow); }
+  .score.low { color: var(--red); }
+  .badge { border-radius: 10px; padding: 3px 9px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .badge.matched { background: rgba(79,156,249,.15); color: var(--accent); }
+  .badge.applied { background: rgba(63,185,80,.15); color: var(--green); }
+  .badge.failed, .badge.rejected { background: rgba(248,81,73,.15); color: var(--red); }
+  .badge.new, .badge.skipped { background: rgba(139,152,165,.15); color: var(--muted); }
+  .badge.answered, .badge.interview, .badge.offer { background: rgba(210,153,34,.2); color: var(--yellow); }
+  .badge.manual { background: rgba(210,153,34,.15); color: var(--yellow); border: 1px dashed var(--yellow); }
+  .remote-tag { color: var(--green); font-size: 11px; font-weight: 600; }
+  td button {
+    background: none; border: 1px solid var(--border); color: var(--text);
+    border-radius: 5px; padding: 4px 10px; font-size: 12px; cursor: pointer; margin-right: 4px;
+  }
+  td button:hover { border-color: var(--accent); color: var(--accent); }
+  .empty { text-align: center; color: var(--muted); padding: 40px !important; }
+  #toast {
+    position: fixed; bottom: 24px; right: 24px; background: var(--panel);
+    border: 1px solid var(--accent); border-radius: 8px; padding: 12px 18px;
+    font-size: 14px; display: none; z-index: 20;
+  }
+  #modal-backdrop {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 10;
+  }
+  #modal {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    max-width: 760px; margin: 6vh auto; max-height: 84vh; overflow-y: auto; padding: 24px;
+  }
+  #modal h2 { font-size: 18px; margin-bottom: 4px; }
+  #modal .sub { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+  #modal h3 { font-size: 14px; margin: 16px 0 6px; color: var(--accent); }
+  #modal pre {
+    white-space: pre-wrap; font-family: inherit; font-size: 13px; line-height: 1.5;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px;
+  }
+  #modal .close { float: right; cursor: pointer; color: var(--muted); font-size: 20px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Bewerbungs<span>Bot</span></h1>
+  <div class="actions">
+    <button class="secondary" onclick="triggerAction('/api/scrape')">&#128269; Jobs suchen</button>
+    <button onclick="triggerAction('/api/apply')">&#128640; Bewerbungen senden</button>
+  </div>
+</header>
+<main>
+  <div class="stats" id="stats"></div>
+  <div class="filters">
+    <button class="chip active" data-filter="all">Alle</button>
+    <button class="chip" data-filter="remote">Remote</button>
+    <button class="chip" data-filter="germany">Deutschland</button>
+    <button class="chip" data-filter="europe">Europa</button>
+    <button class="chip" data-filter="java">Java</button>
+    <button class="chip" data-filter="backend">Backend</button>
+    <button class="chip" data-filter="angular">Angular</button>
+    <select id="status-filter">
+      <option value="">Status: alle</option>
+      <option value="new">Neu</option>
+      <option value="matched">Passend</option>
+      <option value="manual">Manuell bewerben</option>
+      <option value="skipped">Aussortiert</option>
+      <option value="applied">Beworben</option>
+      <option value="failed">Fehlgeschlagen</option>
+      <option value="answered">Antwort erhalten</option>
+      <option value="interview">Interview</option>
+      <option value="rejected">Absage</option>
+      <option value="offer">Angebot</option>
+    </select>
+    <input id="search" type="text" placeholder="Suche: Firma, Titel, Text …">
+    <input id="min-score" type="number" min="0" max="100" placeholder="Min. Score">
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Firma</th><th>Position</th><th>Ort</th><th>Quelle</th>
+        <th>Score</th><th>Status</th><th>Gefunden</th><th>Aktionen</th>
+      </tr>
+    </thead>
+    <tbody id="job-rows"></tbody>
+  </table>
+</main>
+<div id="modal-backdrop" onclick="if (event.target === this) closeModal()">
+  <div id="modal"></div>
+</div>
+<div id="toast"></div>
+<script>
+const STATUS_LABELS = {
+  new: "Neu", matched: "Passend", manual: "Manuell bewerben", skipped: "Aussortiert",
+  applied: "Beworben", failed: "Fehlgeschlagen", answered: "Antwort",
+  interview: "Interview", rejected: "Absage", offer: "Angebot"
+};
+const TECH_FILTERS = new Set(["java", "backend", "angular"]);
+const state = { filter: "all", status: "", q: "", minScore: "" };
+
+function buildQuery() {
+  const params = new URLSearchParams();
+  if (state.filter === "remote") params.set("remote", "true");
+  else if (state.filter === "germany" || state.filter === "europe") params.set("region", state.filter);
+  else if (TECH_FILTERS.has(state.filter)) params.set("q", state.filter);
+  if (state.q) params.set("q", state.q);
+  if (state.status) params.set("status", state.status);
+  if (state.minScore !== "") params.set("min_score", state.minScore);
+  return params.toString();
+}
+
+function scoreClass(score) {
+  if (score === null || score === undefined) return "";
+  if (score >= 60) return "high";
+  if (score >= 40) return "mid";
+  return "low";
+}
+
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text ?? "";
+  return div.innerHTML;
+}
+
+async function loadJobs() {
+  const response = await fetch("/api/jobs?" + buildQuery());
+  const jobs = await response.json();
+  const tbody = document.getElementById("job-rows");
+  if (!jobs.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">Keine Jobs gefunden. Starte eine Suche mit „Jobs suchen".</td></tr>';
+    return;
+  }
+  tbody.innerHTML = jobs.map(job => `
+    <tr>
+      <td>${escapeHtml(job.company)}</td>
+      <td><a href="${escapeHtml(job.url)}" target="_blank" rel="noopener">${escapeHtml(job.title)}</a>
+        ${job.remote ? '<span class="remote-tag"> · Remote</span>' : ""}</td>
+      <td>${escapeHtml(job.location) || "–"}</td>
+      <td>${escapeHtml(job.source)}</td>
+      <td class="score ${scoreClass(job.match_score)}">${job.match_score ?? "–"}</td>
+      <td><span class="badge ${job.status}">${STATUS_LABELS[job.status] ?? job.status}</span></td>
+      <td>${new Date(job.found_at).toLocaleDateString("de-DE")}</td>
+      <td>
+        <button onclick="showDetail(${job.id})">Details</button>
+        ${job.status === "matched" && !job.applied
+          ? `<button onclick="applySingle(${job.id})">Bewerben</button>` : ""}
+      </td>
+    </tr>`).join("");
+}
+
+async function loadStats() {
+  const response = await fetch("/api/stats");
+  const stats = await response.json();
+  document.getElementById("stats").innerHTML = `
+    <div class="stat"><div class="value">${stats.total}</div><div class="label">Gefundene Jobs</div></div>
+    <div class="stat"><div class="value">${stats.matched}</div><div class="label">Passend (Score ≥ 60)</div></div>
+    <div class="stat"><div class="value">${stats.applied}</div><div class="label">Bewerbungen gesendet</div></div>
+    <div class="stat"><div class="value">${stats.responses}</div><div class="label">Antworten</div></div>
+    <div class="stat"><div class="value">${stats.average_score ?? "–"}</div><div class="label">Ø Match Score</div></div>`;
+}
+
+async function showDetail(jobId) {
+  const response = await fetch(`/api/jobs/${jobId}`);
+  if (!response.ok) return;
+  const job = await response.json();
+  const statusOptions = Object.entries(STATUS_LABELS)
+    .map(([value, label]) =>
+      `<option value="${value}" ${value === job.status ? "selected" : ""}>${label}</option>`)
+    .join("");
+  document.getElementById("modal").innerHTML = `
+    <span class="close" onclick="closeModal()">&#10005;</span>
+    <h2>${escapeHtml(job.title)}</h2>
+    <div class="sub">${escapeHtml(job.company)} · ${escapeHtml(job.location) || "Ort unbekannt"} ·
+      <a href="${escapeHtml(job.url)}" target="_blank" rel="noopener">Stellenanzeige öffnen</a></div>
+    <div>Status:
+      <select onchange="updateStatus(${job.id}, this.value)">${statusOptions}</select>
+      &nbsp; Score: <strong>${job.match_score ?? "–"}</strong>
+      (Keywords: ${job.keyword_score ?? "–"} / LLM: ${job.llm_score ?? "–"})
+    </div>
+    ${job.error ? `<h3>Letzter Fehler</h3><pre>${escapeHtml(job.error)}</pre>` : ""}
+    ${job.cover_letter ? `<h3>Anschreiben</h3><pre>${escapeHtml(job.cover_letter)}</pre>` : ""}
+    <h3>Beschreibung</h3>
+    <pre>${escapeHtml(job.description || "Keine Beschreibung verfügbar.")}</pre>`;
+  document.getElementById("modal-backdrop").style.display = "block";
+}
+
+function closeModal() {
+  document.getElementById("modal-backdrop").style.display = "none";
+}
+
+async function updateStatus(jobId, status) {
+  await fetch(`/api/jobs/${jobId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status })
+  });
+  toast("Status aktualisiert");
+  refresh();
+}
+
+async function applySingle(jobId) {
+  const response = await fetch(`/api/jobs/${jobId}/apply`, { method: "POST" });
+  const body = await response.json();
+  toast(body.detail ?? "Gestartet");
+  setTimeout(refresh, 4000);
+}
+
+async function triggerAction(endpoint) {
+  const response = await fetch(endpoint, { method: "POST" });
+  const body = await response.json();
+  toast(body.detail ?? "Gestartet");
+}
+
+function toast(message) {
+  const node = document.getElementById("toast");
+  node.textContent = message;
+  node.style.display = "block";
+  clearTimeout(node._timer);
+  node._timer = setTimeout(() => { node.style.display = "none"; }, 3500);
+}
+
+function refresh() {
+  loadJobs();
+  loadStats();
+}
+
+document.querySelectorAll(".chip").forEach(chip => {
+  chip.addEventListener("click", () => {
+    document.querySelectorAll(".chip").forEach(other => other.classList.remove("active"));
+    chip.classList.add("active");
+    state.filter = chip.dataset.filter;
+    loadJobs();
+  });
+});
+document.getElementById("status-filter").addEventListener("change", event => {
+  state.status = event.target.value;
+  loadJobs();
+});
+let searchTimer;
+document.getElementById("search").addEventListener("input", event => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { state.q = event.target.value.trim(); loadJobs(); }, 350);
+});
+document.getElementById("min-score").addEventListener("change", event => {
+  state.minScore = event.target.value;
+  loadJobs();
+});
+
+refresh();
+setInterval(refresh, 30000);
+</script>
+</body>
+</html>
