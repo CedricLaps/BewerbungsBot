@@ -222,6 +222,7 @@ async function showDetail(jobId) {
       <select onchange="updateStatus(${job.id}, this.value)">${statusOptions}</select>
       &nbsp; Score: <strong>${job.match_score ?? "–"}</strong>
       (Keywords: ${job.keyword_score ?? "–"} / LLM: ${job.llm_score ?? "–"})
+      &nbsp; <button onclick="regenerateLetter(${job.id})">&#10227; Anschreiben neu generieren</button>
     </div>
     ${job.error ? `<h3>Letzter Fehler</h3><pre>${escapeHtml(job.error)}</pre>` : ""}
     ${job.cover_letter ? `<h3>Anschreiben</h3><pre>${escapeHtml(job.cover_letter)}</pre>` : ""}
@@ -242,6 +243,13 @@ async function updateStatus(jobId, status) {
   });
   toast("Status aktualisiert");
   refresh();
+}
+
+async function regenerateLetter(jobId) {
+  const response = await fetch(`/api/jobs/${jobId}/regenerate-letter`, { method: "POST" });
+  const body = await response.json();
+  toast(body.detail ?? "Gestartet");
+  setTimeout(() => showDetail(jobId), 25000);
 }
 
 async function applySingle(jobId) {

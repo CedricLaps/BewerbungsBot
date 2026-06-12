@@ -155,3 +155,18 @@ class Pipeline:
         if job.applied:
             return "already_applied"
         return self.apply_manager.apply_to_job(job)
+
+    def regenerate_cover_letter(self, job_id: int) -> str:
+        """Erzeugt das Anschreiben einer Stelle neu (z.B. nach neuen Stilvorlagen)."""
+        job = self.repository.get(job_id)
+        if job is None:
+            return "not_found"
+        try:
+            letter = self.llm.generate_cover_letter(job.title, job.company, job.description)
+        except LLMError as exc:
+            logger.warning("Neugenerierung für Job %s fehlgeschlagen: %s", job_id, exc)
+            self.repository.set_error(job_id, f"Anschreiben-Neugenerierung fehlgeschlagen: {exc}")
+            return "failed"
+        self.repository.save_cover_letter(job_id, letter)
+        logger.info("Anschreiben neu generiert: %s — %s", job.company, job.title)
+        return "ok"

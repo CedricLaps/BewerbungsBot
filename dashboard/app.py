@@ -120,6 +120,16 @@ def create_app(config: AppConfig | None = None) -> FastAPI:
         background_tasks.add_task(pipeline.apply_pending)
         return ActionOut(started=True, detail="Bewerbungslauf im Hintergrund gestartet")
 
+    @application.post("/api/jobs/{job_id}/regenerate-letter", response_model=ActionOut)
+    def trigger_regenerate_letter(job_id: int, background_tasks: BackgroundTasks) -> ActionOut:
+        job = pipeline.repository.get(job_id)
+        if job is None:
+            raise HTTPException(status_code=404, detail="Job nicht gefunden")
+        background_tasks.add_task(pipeline.regenerate_cover_letter, job_id)
+        return ActionOut(
+            started=True, detail="Anschreiben wird neu generiert (dauert ca. 30 Sekunden)"
+        )
+
     @application.post("/api/jobs/{job_id}/apply", response_model=ActionOut)
     def trigger_apply_single(job_id: int, background_tasks: BackgroundTasks) -> ActionOut:
         job = pipeline.repository.get(job_id)
